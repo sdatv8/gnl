@@ -6,7 +6,7 @@
 /*   By: Sjannet <sjannet@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/24 15:02:33 by Sjannet           #+#    #+#             */
-/*   Updated: 2021/11/18 20:08:18 by Sjannet          ###   ########.fr       */
+/*   Updated: 2021/11/20 10:48:26 by Sjannet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,37 +25,25 @@ size_t	ft_strlen(const char *str)
 	return (i);
 }
 
-size_t	ft_strlcpy(char *dst, const char *src, size_t dstsize)
-{
-	size_t	i;
-
-	i = 0;
-	if (!src)
-		return (0);
-	if (dstsize)
-	{
-		while (i < dstsize - 1 && src[i])
-		{
-			dst[i] = src[i];
-			++i;
-		}
-		dst[i] = '\0';
-	}
-	while (src[i])
-		++i;
-	return (i);
-}
-
 char	*ft_strdup(const char *s)
 {
-	size_t	len;
-	char	*buf;
+	char	*str;
+	int		i;
 
-	len = ft_strlen(s);
-	if (!(buf = (char *)malloc(len + 1)))
+	i = 0;
+	while (s[i])
+		i++;
+	str = (char *)malloc(sizeof(*s) * (i + 1));
+	if (!str)
 		return (NULL);
-	ft_strlcpy(buf, s, len + 1);
-	return (buf);
+	i = 0;
+	while (s[i])
+	{
+		str[i] = s[i];
+		i++;
+	}
+	str[i] = '\0';
+	return (str);
 }
 
 char	*ft_strjoin(char const *s1, char const *s2)
@@ -105,6 +93,7 @@ int		get_next_line(int fd, int BUFFER_SIZE)
 	int		read_line;
 	int		flag;
 
+	flag = 1;
 	if (remainder)
 		line = ft_strdup(remainder);
 
@@ -118,11 +107,10 @@ int		get_next_line(int fd, int BUFFER_SIZE)
 		if ((pointer = ft_strchr(line, '\n')))
 		{
 			*pointer = '\0';
-			flag = 0;
 			pointer++;
 			remainder = ft_strdup(pointer);
+			flag = 0; //break
 		}
-
 	}
 	printf("%s", line);
 
@@ -140,17 +128,12 @@ int	main(void)
 
 	i = 0;
 	fd = open("text.txt", O_RDONLY);
-	// while (i < 4)
-	// {
-	get_next_line(fd, 10);
-	printf("\n");
-	get_next_line(fd, 10);
-	printf("\n");
-	get_next_line(fd, 10);
-	printf("\n");
-	get_next_line(fd, 10);
-	// 	i++;
-	// }
+	while (i < 20)
+	{
+		get_next_line(fd, 10);
+		printf("\n");
+		i++;
+	}
 	// printf("%s\n", line);
 	return (0);
 }
