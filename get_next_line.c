@@ -6,71 +6,87 @@
 /*   By: Sjannet <sjannet@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/10/24 15:02:33 by Sjannet           #+#    #+#             */
-/*   Updated: 2021/11/20 14:29:20 by Sjannet          ###   ########.fr       */
+/*   Updated: 2021/11/28 14:47:03 by Sjannet          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*get_line(int fd, char *buf)
+char	*reading_buf(int fd, char *buf, char *remainder)
 {
-	int			read_line;
-	char		*pointer;
-	char		*line;
-	char		*tmp;
-	static char	*remainder;
+	int	read_buf;
 
-	pointer = NULL;
-	if (remainder)
-		line = ft_strdup(remainder);
-	else
-		line = ft_strnew(1);
-
-	while (!pointer && (read_line = read(fd, buf,  10)))
+	read_buf = 1;
+	while (read_buf != 0 && ft_strchr(remainder, '\n') == NULL)
 	{
-		buf[read_line] = '\0';
-		tmp = line;
-		line = ft_strjoin(line, buf);
-		free(tmp);
-		// tmp = NULL;
-		if ((pointer = ft_strchr(line, '\n')))
+		read_buf = read(fd, buf, BUFFER_SIZE);
+		if (read_buf < 0)
 		{
-			*pointer = '\0';
-			remainder = ft_strdup(++pointer);
+			free (buf);
+			return (0);
 		}
+		buf[read_buf] = '\0';
+		if (remainder)
+			remainder = ft_strjoin(remainder, buf);
+		else
+			remainder = ft_substr(buf, 0, read_buf);
 	}
-	
-	if (read_line == 0)
-		return (NULL);
-	return (line);
-}
-
-char	*get_next_line(int fd)
-{
-	char		*line;
-	char		*buf;
-	
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (0);
-	buf = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (!buf)
-		return (NULL);
-	line = get_line(fd, buf);
 	free(buf);
-	// buf = NULL;
-	
-	return (line);
+	return (remainder);
 }
 
-int	main(void)
+char	*get_line(char *remainder)
 {
-	int		fd;
 	int		i;
 	char	*line;
 
 	i = 0;
-	fd = open("text.txt", O_RDONLY);
-	while ((line = get_next_line(fd)))
-		printf("%s\n", line);
-	return (0);
+	while (remainder[i] && remainder[i] != '\n')
+		i++;
+	if (remainder[i] == '\n')
+		i++;
+	line = ft_substr(remainder, 0, i);
+	return (line);
+}
+
+char	*get_remainder(char *remainder)
+{
+	int		i;
+	char	*ret_remainder;
+
+	i = 0;
+	while (remainder[i] && remainder[i] != '\n')
+		i++;
+	i++;
+	ret_remainder = ft_substr(remainder, i, ft_strlen(remainder));
+	free (remainder);
+	return (ret_remainder);
+}
+
+char	*get_next_line(int fd)
+{
+	char		*buf;
+	char		*line;
+	static char	*remainder;
+
+	if (fd < 0 || BUFFER_SIZE < 1)
+		return (0);
+	buf = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	if (!buf)
+		return (0);
+	remainder = reading_buf(fd, buf, remainder);
+	if (!remainder || remainder[0] == '\0')
+	{
+		free(remainder);
+		remainder = 0;
+		return (0);
+	}
+	line = get_line(remainder);
+	if (!line || line[0] == '\0')
+	{
+		free (line);
+		return (0);
+	}
+	remainder = get_remainder(remainder);
+	return (line);
 }
